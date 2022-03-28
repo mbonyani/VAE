@@ -92,5 +92,5 @@ training-data.csv (needed in sampling-parameters.json for sampling procedure)
 ## Acknowledgements
 
 This builds upon the implementation provided for : “Attribute-based Regularization of Latent Spaces for Variational Auto-Encoders” by Ashis Pati, Alexander Lerch
-
+ 
 
