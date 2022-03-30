@@ -7,7 +7,7 @@ Created on Sat Dec 12 19:01:35 2020
 import torch
 
 from utils.model import Model
-
+from attention import ExternalAttention,ScaledDotProductAttention,EMSA,MUSEAttention,AFT_FULL,UFOAttention
 class SequenceModel(Model):
     ALPHABET = ['A','C','G','T']
     def __init__(
@@ -65,6 +65,18 @@ class SequenceModel(Model):
         )
 
         self.dec_final = torch.nn.Linear(hidden_size*emb_dim*2, n_chars*seq_len)
+
+        self.external = ExternalAttention(d_model=26,S=8)
+        self.scale = ScaledDotProductAttention(d_model=26, d_k=26, d_v=26, h=8)
+        self.emsa = EMSA(d_model=26, d_k=26, d_v=26, h=8,H=8,W=8,ratio=1,apply_transform=True)
+        self.muse = MUSEAttention(d_model=26, d_k=26, d_v=26, h=8)
+        self.aft = AFT_FULL(d_model=26, n=10)
+        self.ufo = UFOAttention(d_model=26, d_k=26, d_v=26, h=8)
+
+
+
+
+
         
         self.xavier_initialization()
     
@@ -72,6 +84,17 @@ class SequenceModel(Model):
     def encode(self, x):
         hidden, _ = self.emb_lstm(x.float()) # the _ contains unnecessary hidden and cell state info https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html
         #hidden = self.latent_linear(hidden[:,-1,:])
+        
+        
+
+        # hidden = self.external(hidden)
+        # hidden = self.scale(hidden,hidden,hidden)
+        # hidden = self.emsa(hidden,hidden,hidden)
+        # hidden = self.muse(hidden,hidden,hidden)
+        # hidden = self.aft(hidden)
+        # hidden = self.ufo(hidden,hidden,hidden)
+
+
         hidden = self.latent_linear(torch.flatten(hidden, 1))
         z_mean = self.latent_mean(hidden)
         z_log_std = self.latent_log_std(hidden)
@@ -81,6 +104,10 @@ class SequenceModel(Model):
     def decode(self, z):
         hidden = self.dec_lin(z)
         hidden, _ = self.dec_lstm(hidden.view(-1,self.emb_dim,1))
+
+        
+
+
         #out = self.dec_final(hidden[:,-1,:])
         out = self.dec_final(torch.flatten(hidden, 1))
         return out.view(-1,self.seq_len,self.n_chars)
