@@ -6,7 +6,7 @@ from torch.functional import norm
 
 
 
-class ExternalAttention(nn.Module):
+#class ExternalAttention(nn.Module):
 
     def __init__(self, d_model,S=64):
         super().__init__()
